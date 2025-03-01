@@ -43,7 +43,7 @@ namespace TGM.Services.Livelo
             if (legalTerms is null)
                 return "Consultar regulamento";
 
-            const string pattern = @"(\d{2})[-/](\d{2})[-/](\d{4})";
+            const string pattern = @"(\d{2})[-/](\d{2})[-/](\d{2,4})";
 
             var match = Regex.Match(legalTerms, pattern);
 
