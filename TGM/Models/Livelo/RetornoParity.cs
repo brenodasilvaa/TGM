@@ -11,5 +11,6 @@ namespace TGM.Models.Livelo
         public string Nome { get; set; }
         public string Bonificacao { get; set; }
         public string Validade { get; set; }
+        public string? LegalTerms { get; set; }
     }
 }

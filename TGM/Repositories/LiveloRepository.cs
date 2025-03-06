@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using TGM.Models.Livelo;
 
 namespace TGM.Repositories
@@ -35,7 +36,7 @@ namespace TGM.Repositories
             var partnersParities = JsonSerializer.Deserialize<List<PartnerParityModel>>(infoPartners,
                 new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
 
-            return partnersParities.Any() ? partnersParities[0].LegalTerms : string.Empty;
+            return partnersParities.Any() ? Regex.Replace(partnersParities[0].LegalTerms, "<.*?>", string.Empty).Replace(";", string.Empty) : string.Empty;
         }
 
         public async Task<Partner?> GetPartners(CancellationToken cancellation)

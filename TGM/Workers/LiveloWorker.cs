@@ -1,9 +1,4 @@
 ﻿using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TGM.Services.Livelo;
 
 namespace TGM.Workers
@@ -13,11 +8,13 @@ namespace TGM.Workers
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var teste = await parityService.GetParities(stoppingToken);
-            var path = Path.Combine(Directory.GetCurrentDirectory(), Guid.NewGuid().ToString() + ".txt");
+            var path = Path.Combine(Directory.GetCurrentDirectory(), DateTime.Now.ToString("D") + ".csv");
 
+            File.AppendAllText(path, $"Programa ; Parceiro ; Bonificação ; Validade; Termos Legais; {Environment.NewLine}");
+            
             foreach (var test in teste) 
             {
-                File.AppendAllText(path, $"Programa: Livelo | Parceiro: {test.Nome} | Bonificação: {test.Bonificacao} | Validade: {test.Validade} {Environment.NewLine}");
+                File.AppendAllText(path, $"Livelo ; {test.Nome} ; {test.Bonificacao} ; {test.Validade}; {test.LegalTerms}; {Environment.NewLine}", System.Text.Encoding.UTF8);
             }
         }
     }

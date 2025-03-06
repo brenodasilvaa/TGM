@@ -25,11 +25,14 @@ namespace TGM.Services.Livelo
                 if (partnerFit == null || !partnerFit.Active)
                     continue;
 
+                var legalTerms = await liveloRepository.GetPartnerLegalTerm(partnerFit.Id, cancellation);
+
                 var partnerParity = new RetornoParity()
                 {
                     Nome = partnerFit.Name,
                     Bonificacao = $"Até {partner.Currency}{partner.Parity} ou Até {partner.Currency}{partner.ParityClub} no Clube Livelo",
-                    Validade = GetDateFromLegalTerms(await liveloRepository.GetPartnerLegalTerm(partnerFit.Id, cancellation))
+                    Validade = GetDateFromLegalTerms(legalTerms),
+                    LegalTerms = legalTerms
                 };
 
                 retorno.Add(partnerParity);
