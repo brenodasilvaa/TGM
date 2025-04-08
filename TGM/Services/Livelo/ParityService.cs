@@ -27,10 +27,15 @@ namespace TGM.Services.Livelo
 
                 var legalTerms = await liveloRepository.GetPartnerLegalTerm(partnerFit.Id, cancellation);
 
+                var bonificacao = $"Até {partner.ParityClub} pontos por real";
+
+                if (partner.ParityClub == partner.Parity)
+                    bonificacao = $"{partner.Parity} pontos por real";
+
                 var partnerParity = new RetornoParity()
                 {
                     Nome = partnerFit.Name,
-                    Bonificacao = $"Até {partner.Currency}{partner.Parity} ou Até {partner.Currency}{partner.ParityClub} no Clube Livelo",
+                    Bonificacao = bonificacao,
                     Validade = GetDateFromLegalTerms(legalTerms),
                     LegalTerms = legalTerms
                 };

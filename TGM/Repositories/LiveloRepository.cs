@@ -8,7 +8,7 @@ namespace TGM.Repositories
 {
     internal class LiveloRepository : ILiveloRepository
     {
-        const string UrlInfoPartners = "https://www.livelo.com.br/ccstore/v1/files/thirdparty/config_partners_compre_e_pontue.json";
+        const string UrlInfoPartners = "https://pontos.livelo.com.br/ccstore/v1/files/thirdparty/config_partners_compre_e_pontue.json";
         const string UrlPartnerParity = "https://apis.pontoslivelo.com.br/api-bff-partners-parities/v1/parities/active";
         const string UrlPartnerParityByCode = $"{UrlPartnerParity}?partnersCodes=";
         private readonly HttpClient _httpClient;
