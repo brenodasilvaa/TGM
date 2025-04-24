@@ -2,4 +2,4 @@ TGM is a small API client that connects to Livelo's API to retrieve some structu
 
 The project is build in C# and .NET, using background service
 
-The project architecture tries to separate different layers of abstractions, seggregating service layer and repository layer
+The project architecture tries to separate different layers of abstractions, segregating service layer and repository layer
