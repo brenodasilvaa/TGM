@@ -8,7 +8,7 @@ namespace TGM.Repositories
 {
     internal class LiveloRepository : ILiveloRepository
     {
-        const string UrlInfoPartners = "https://pontos.livelo.com.br/ccstore/v1/files/thirdparty/config_partners_compre_e_pontue.json";
+        const string UrlInfoPartners = "https://www.livelo.com.br/juntar-pontos/todos-os-parceiros";//"https://pontos.livelo.com.br/ccstore/v1/files/thirdparty/config_partners_compre_e_pontue.json";
         const string UrlPartnerParity = "https://apis.pontoslivelo.com.br/api-bff-partners-parities/v1/parities/active";
         const string UrlPartnerParityByCode = $"{UrlPartnerParity}?partnersCodes=";
         private readonly HttpClient _httpClient;
@@ -45,7 +45,9 @@ namespace TGM.Repositories
 
             var infoPartners = await infoPartnersResult.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<Partner>(infoPartners, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true});
+            var infoPartnersFormatted = GetPartnersObjectSerialized(infoPartners);
+
+            return JsonSerializer.Deserialize<Partner>(infoPartnersFormatted, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true});
         }
 
         public async Task<List<PartnerParityModel>?> GetPartnersParities(CancellationToken cancellation)
@@ -55,6 +57,51 @@ namespace TGM.Repositories
             var infoPartners = await infoPartnersResult.Content.ReadAsStringAsync();
 
             return JsonSerializer.Deserialize<List<PartnerParityModel>>(infoPartners, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+        }
+
+        private string GetPartnersObjectSerialized(string input)
+        {
+            string key = "\"configPartners\"";
+            int startIndex = input.LastIndexOf(key);
+
+            if (startIndex >= 0)
+            {
+                // procura o primeiro '{' ou '[' após a chave
+                int jsonStart = input.IndexOfAny(new[] { '{', '[' }, startIndex);
+
+                if (jsonStart >= 0)
+                {
+                    char openChar = input[jsonStart];
+                    char closeChar = openChar == '{' ? '}' : ']';
+
+                    int balance = 0;
+                    int i = jsonStart;
+
+                    for (; i < input.Length; i++)
+                    {
+                        if (input[i] == openChar) balance++;
+                        else if (input[i] == closeChar) balance--;
+
+                        if (balance == 0) break;
+                    }
+
+                    if (balance == 0)
+                    {
+                        string jsonConfig = input.Substring(jsonStart, i - jsonStart + 1);
+
+                        // envolve em um JSON válido para parsear
+                        return "{ \"configPartners\": " + jsonConfig + " }";
+                    }
+
+                    return string.Empty;
+                }
+
+                return string.Empty;
+            }
+            else
+            {
+                return string.Empty;
+            }
         }
     }
 }

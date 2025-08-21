@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
 using TGM.Models.Livelo;
 using TGM.Repositories;
 
@@ -13,16 +8,19 @@ namespace TGM.Services.Livelo
     {
         public async Task<List<RetornoParity>> GetParities(CancellationToken cancellation)
         {
+            Console.WriteLine("Obtendo lista de parceiros...");
             var partnersInfo = await liveloRepository.GetPartners(cancellation);
+
+            Console.WriteLine("Obtendo lista de promoções...");
             var partnersParities = await liveloRepository.GetPartnersParities(cancellation);
 
             var retorno = new List<RetornoParity>();
 
             foreach (var partner in partnersParities.Where(x => x.Promotion).OrderByDescending(x => x.ParityClub))
             {
-                var partnerFit = partnersInfo.Partners.FirstOrDefault(x => x.Id == partner.PartnerCode);
+                var partnerFit = partnersInfo.ConfigPartners.FirstOrDefault(x => x.Id == partner.PartnerCode);
 
-                if (partnerFit == null || !partnerFit.Active)
+                if (partnerFit == null)
                     continue;
 
                 var legalTerms = await liveloRepository.GetPartnerLegalTerm(partnerFit.Id, cancellation);

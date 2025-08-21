@@ -8,6 +8,6 @@ namespace TGM.Models.Livelo
 {
     internal class Partner
     {
-        public List<ParterInfoModel> Partners { get; set; } = [];
+        public List<ParterInfoModel> ConfigPartners { get; set; } = [];
     }
 }
