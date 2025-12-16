@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
-using TGM.Services.Livelo;
+using TGM.Services.Interfaces;
 
 namespace TGM.Workers
 {
@@ -16,12 +16,12 @@ namespace TGM.Workers
 
                 foreach (var test in parities)
                 {
-                    File.AppendAllText(path, $"Livelo ; {test.Nome} ; {test.Bonificacao} ; {test.Validade}; {test.LegalTerms}; {Environment.NewLine}", System.Text.Encoding.UTF8);
+                    File.AppendAllText(path, $"Livelo ; {test.Nome} ; {test.Pontuacao} ; {test.Validade}; {test.LegalTerms}; {Environment.NewLine}", System.Text.Encoding.UTF8);
                 }
 
                 Console.WriteLine("Processamento concluído");
             }
-            catch (Exception e)
+            catch
             {
                 Console.WriteLine("Algo errado ocorreu durante o processamento");
             }

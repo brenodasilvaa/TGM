@@ -1,10 +1,11 @@
 ﻿using System.Text.RegularExpressions;
-using TGM.Models.Livelo;
+using TGM.Models;
 using TGM.Repositories;
+using TGM.Services.Interfaces;
 
 namespace TGM.Services.Livelo
 {
-    internal class ParityService(ILiveloRepository liveloRepository) : IParityService
+    internal class LiveloParityService(ILiveloRepository liveloRepository) : IParityService
     {
         public async Task<List<RetornoParity>> GetParities(CancellationToken cancellation)
         {
@@ -33,7 +34,7 @@ namespace TGM.Services.Livelo
                 var partnerParity = new RetornoParity()
                 {
                     Nome = partnerFit.Name,
-                    Bonificacao = bonificacao,
+                    Pontuacao = bonificacao,
                     Validade = GetDateFromLegalTerms(legalTerms),
                     LegalTerms = legalTerms
                 };

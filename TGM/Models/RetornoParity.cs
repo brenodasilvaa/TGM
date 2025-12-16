@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TGM.Models.Livelo
+namespace TGM.Models
 {
     internal class RetornoParity
     {
         public string Nome { get; set; }
-        public string Bonificacao { get; set; }
+        public string Pontuacao { get; set; }
         public string Validade { get; set; }
         public string? LegalTerms { get; set; }
     }
