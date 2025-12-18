@@ -21,7 +21,7 @@ namespace TGM.Workers
 
                 Console.WriteLine("Processamento concluído");
             }
-            catch
+            catch(Exception ex)
             {
                 Console.WriteLine("Algo errado ocorreu durante o processamento");
             }

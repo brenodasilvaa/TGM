@@ -10,7 +10,8 @@ namespace TGM.Models.Esfera
     {
         public string DisplayName { get; set; }
         public ExternalInfo ExternalInfo { get; set; }
-        public DateTime esf_accumulationExpirationDate { get; set; }
+        public string esf_accumulationGeneralRules { get; set; }
         public string esf_accumulationPrefix { get; set; }
+        public int? esf_accumulationValue { get; set; }
     }
 }
