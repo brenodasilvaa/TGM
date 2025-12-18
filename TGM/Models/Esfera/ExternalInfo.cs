@@ -8,7 +8,7 @@ namespace TGM.Models.Esfera
 {
     internal class ExternalInfo
     {
-        public string Amount { get; set; }
-        public string Rule { get; set; }
+        public string? Amount { get; set; }
+        public string? Rule { get; set; }
     }
 }

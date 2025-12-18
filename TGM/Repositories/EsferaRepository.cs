@@ -29,7 +29,7 @@ namespace TGM.Repositories
 
             var infoPartners = await infoPartnersResult.Content.ReadAsStringAsync();
 
-            var teste =  JsonSerializer.Deserialize<Parities>(infoPartners, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            var teste =  JsonSerializer.Deserialize<Parities>(infoPartners, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, RespectNullableAnnotations = true });
             return teste.Items;
         }
     }

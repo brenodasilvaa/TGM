@@ -14,19 +14,28 @@ namespace TGM.Services.Esfera
 
             var retorno = new List<RetornoParity>();
 
-            foreach (var partner in partnersParities)
+            Console.WriteLine("Insira o valor mínimo considerado promoção ou pressione Enter para considerar o padrão 4");
+            
+            var resposta = Console.ReadLine();
+
+            if (!int.TryParse(resposta, out var limiteMinimo) || limiteMinimo < 1)
+                limiteMinimo = 4;
+
+            foreach (var partner in partnersParities.Where(x => x.esf_accumulationValue is not null)
+                                                    .OrderByDescending(x => int.Parse(x.esf_accumulationValue)))
             {
-                if (partner.esf_accumulationValue == null || partner.esf_accumulationValue < 4)
+                if (int.Parse(partner.esf_accumulationValue) < limiteMinimo)
                     continue;
 
-                var bonificacao = $"Até {partner.esf_accumulationValue} pontos por real";
+                var bonificacao = $"{partner.esf_accumulationPrefix} {partner.esf_accumulationValue} pontos por real";
+                var legalTerms = partner.esf_accumulationGeneralRules is not null ? Regex.Replace(partner.esf_accumulationGeneralRules, "<.*?>|\\r?\\n", string.Empty).Replace(";", string.Empty) : string.Empty;
 
                 var partnerParity = new RetornoParity()
                 {
                     Nome = partner.DisplayName,
                     Pontuacao = bonificacao,
-                    Validade = GetDateFromLegalTerms(partner.esf_accumulationGeneralRules),
-                    LegalTerms = partner.esf_accumulationGeneralRules
+                    Validade = GetDateFromLegalTerms(legalTerms),
+                    LegalTerms = legalTerms
                 };
 
                 retorno.Add(partnerParity);
