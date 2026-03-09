@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using TGM.Helpers;
 using TGM.Models;
 using TGM.Repositories;
 using TGM.Services.Interfaces;
@@ -36,7 +37,7 @@ namespace TGM.Services.Livelo
                     Nome = partnerFit.Name,
                     Pontuacao = bonificacao,
                     Validade = GetDateFromLegalTerms(legalTerms),
-                    LegalTerms = legalTerms
+                    LegalTerms = StringManipulationHelper.FilterLegalTermsUntilFirstPeriod(legalTerms)
                 };
 
                 retorno.Add(partnerParity);

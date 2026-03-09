@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using TGM.Helpers;
 using TGM.Models;
 using TGM.Repositories;
 using TGM.Services.Interfaces;
@@ -22,9 +23,9 @@ namespace TGM.Services.Esfera
                 limiteMinimo = 4;
 
             foreach (var partner in partnersParities.Where(x => x.esf_accumulationValue is not null)
-                                                    .OrderByDescending(x => int.Parse(x.esf_accumulationValue)))
+                                                    .OrderByDescending(x => double.Parse(x.esf_accumulationValue)))
             {
-                if (int.Parse(partner.esf_accumulationValue) < limiteMinimo)
+                if (double.Parse(partner.esf_accumulationValue) < limiteMinimo)
                     continue;
 
                 var bonificacao = $"{partner.esf_accumulationPrefix} {partner.esf_accumulationValue} pontos por real";
@@ -35,7 +36,7 @@ namespace TGM.Services.Esfera
                     Nome = partner.DisplayName,
                     Pontuacao = bonificacao,
                     Validade = GetDateFromLegalTerms(legalTerms),
-                    LegalTerms = legalTerms
+                    LegalTerms = StringManipulationHelper.FilterLegalTermsUntilFirstPeriod(legalTerms)
                 };
 
                 retorno.Add(partnerParity);

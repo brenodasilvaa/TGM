@@ -22,9 +22,9 @@ namespace TGM.Workers
 
                     var parities = await parityService.GetParities(stoppingToken);
 
-                    foreach (var test in parities)
+                    foreach (var parity in parities)
                     {
-                        File.AppendAllText(path, $"{programa} ; {test.Nome} ; {test.Pontuacao} ; {test.Validade}; {test.LegalTerms}; {Environment.NewLine}", System.Text.Encoding.UTF8);
+                        File.AppendAllText(path, $"{programa} ; {parity.Nome} ; {parity.Pontuacao} ; {parity.Validade}; {parity.LegalTerms}; {Environment.NewLine}", System.Text.Encoding.UTF8);
                     }
 
                     Console.WriteLine("Processamento concluído");
