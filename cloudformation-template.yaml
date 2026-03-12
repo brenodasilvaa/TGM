@@ -1,0 +1,242 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Partners Promo - Infrastructure Stack (Lambda, S3, DynamoDB)'
+
+Parameters:
+  VerificationCode:
+    Type: String
+    Description: Secret verification code for API authentication
+    NoEcho: true
+    MinLength: 8
+    ConstraintDescription: Must be at least 8 characters long
+
+  DailyExecutionLimit:
+    Type: Number
+    Description: Maximum number of executions allowed per day
+    Default: 4
+    MinValue: 1
+    MaxValue: 100
+
+  LambdaCodeBucket:
+    Type: String
+    Description: S3 bucket name where Lambda deployment package is stored
+    Default: ''
+
+  LambdaCodeKey:
+    Type: String
+    Description: S3 key (path) to Lambda deployment package zip file
+    Default: 'lambda/PartnersPromoLambda.zip'
+
+Conditions:
+  HasLambdaCode: !Not [!Equals [!Ref LambdaCodeBucket, '']]
+
+Resources:
+  # ==========================================
+  # S3 Buckets
+  # ==========================================
+  
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${AWS::StackName}-frontend-${AWS::AccountId}'
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - '*'
+            AllowedMethods:
+              - GET
+              - HEAD
+            AllowedHeaders:
+              - '*'
+            MaxAge: 3000
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub '${FrontendBucket.Arn}/*'
+
+  OutputBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${AWS::StackName}-output-${AWS::AccountId}'
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldFiles
+            Status: Enabled
+            ExpirationInDays: 7
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # ==========================================
+  # DynamoDB Table
+  # ==========================================
+  
+  ExecutionCounterTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${AWS::StackName}-execution-counter'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: Date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Date
+          KeyType: HASH
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-execution-counter'
+
+  # ==========================================
+  # IAM Role for Lambda
+  # ==========================================
+  
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-lambda-role'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      Policies:
+        - PolicyName: S3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                  - 's3:GetObject'
+                Resource: !Sub '${OutputBucket.Arn}/*'
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'dynamodb:GetItem'
+                  - 'dynamodb:PutItem'
+                  - 'dynamodb:UpdateItem'
+                Resource: !GetAtt ExecutionCounterTable.Arn
+
+  # ==========================================
+  # Lambda Function
+  # ==========================================
+  
+  PartnersPromoFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-lambda'
+      Runtime: dotnet8
+      Handler: PartnersPromoLambda::PartnersPromoLambda.Handlers.PartnersPromoHandler::HandleRequest
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 300
+      MemorySize: 1024
+      Environment:
+        Variables:
+          VERIFICATION_CODE: !Ref VerificationCode
+          DAILY_EXECUTION_LIMIT: !Ref DailyExecutionLimit
+          S3_BUCKET_NAME: !Ref OutputBucket
+          DYNAMODB_TABLE_NAME: !Ref ExecutionCounterTable
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LambdaCodeKey
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-lambda'
+
+  # Lambda Function URL
+  LambdaFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      AuthType: NONE
+      TargetFunctionArn: !GetAtt PartnersPromoFunction.Arn
+      Cors:
+        AllowOrigins:
+          - '*'
+        AllowMethods:
+          - POST
+          - GET
+        AllowHeaders:
+          - Content-Type
+        MaxAge: 300
+
+  LambdaFunctionUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref PartnersPromoFunction
+      Action: lambda:InvokeFunctionUrl
+      Principal: '*'
+      FunctionUrlAuthType: NONE
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*'
+
+Outputs:
+  FrontendBucketName:
+    Description: S3 bucket name for frontend hosting
+    Value: !Ref FrontendBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-FrontendBucket'
+
+  FrontendWebsiteURL:
+    Description: Frontend website URL
+    Value: !GetAtt FrontendBucket.WebsiteURL
+    Export:
+      Name: !Sub '${AWS::StackName}-FrontendURL'
+
+  OutputBucketName:
+    Description: S3 bucket name for CSV output files
+    Value: !Ref OutputBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-OutputBucket'
+
+  ExecutionCounterTableName:
+    Description: DynamoDB table name for execution counter
+    Value: !Ref ExecutionCounterTable
+    Export:
+      Name: !Sub '${AWS::StackName}-ExecutionCounterTable'
+
+  LambdaFunctionName:
+    Description: Lambda function name
+    Value: !Ref PartnersPromoFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaFunction'
+
+  LambdaFunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt PartnersPromoFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaFunctionArn'
+
+  LambdaFunctionUrl:
+    Description: Lambda Function URL (use this in frontend VITE_API_ENDPOINT)
+    Value: !GetAtt LambdaFunctionUrl.FunctionUrl
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaFunctionUrl'
+
+  LambdaExecutionRoleArn:
+    Description: Lambda execution role ARN
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaExecutionRole'
